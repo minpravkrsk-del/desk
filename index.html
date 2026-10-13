@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Desk</title>
+<style>
+body { font-family: sans-serif; margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #eef1f6; }
+.card { background: #fff; padding: 30px 36px; border-radius: 10px; box-shadow: 0 2px 14px rgba(0,0,0,.08); text-align: center; }
+.card .ttl { font-size: 1.1em; margin-bottom: 14px; color: #333; }
+.card input { padding: 8px; border: 1px solid #ccc; border-radius: 6px; width: 180px; }
+.card button { padding: 8px 20px; border: 0; border-radius: 6px; background: #44598f; color: #fff; cursor: pointer; }
+.card button:hover { background: #38496f; }
+#st { color: #a00; font-size: .9em; margin-top: 10px; min-height: 1em; }
+#root { display: none; width: 100%; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="ttl">Вход</div>
+  <input type="password" id="pw" autocomplete="current-password" autofocus>
+  <button id="go">Войти</button>
+  <div id="st"></div>
+</div>
+<div id="root"></div>
+<script>
+var API = "https://functions.yandexcloud.net/d4emjkqnhbmg4dacd10j"; // адрес функции — заменить после настройки
+var $id = function (i) { return document.getElementById(i); };
+function boot() {
+  var p = $id("pw").value;
+  if (!p) { $id("st").textContent = "Введите пароль"; return; }
+  sessionStorage.setItem("p", p);
+  $id("st").textContent = "…";
+  fetch(API + "?op=app", { headers: { "X-Password": p } }).then(function (r) {
+    if (r.status === 403) { $id("st").textContent = "Неверный пароль"; return; }
+    if (!r.ok) { $id("st").textContent = "Сервис недоступен (" + r.status + ")"; return; }
+    return r.text().then(function (t) {
+      $id("root").innerHTML = t;
+      Array.prototype.forEach.call($id("root").querySelectorAll("script"), function (s) {
+        var n = document.createElement("script"); n.textContent = s.textContent;
+        document.head.appendChild(n); s.parentNode.removeChild(s);
+      });
+      $id("card").style.display = "none";
+      $id("root").style.display = "block";
+      if (window.APP && window.APP.init) window.APP.init();
+    });
+  }).catch(function () { $id("st").textContent = "Нет связи с сервисом"; });
+}
+$id("go").onclick = boot;
+$id("pw").addEventListener("keydown", function (e) { if (e.key === "Enter") boot(); });
+try { if (sessionStorage.getItem("p")) { $id("pw").value = sessionStorage.getItem("p"); boot(); } } catch (e) {}
+</script>
+</body>
+</html>
