@@ -24,14 +24,14 @@ body { font-family: sans-serif; margin: 0; min-height: 100vh; display: flex; ali
 </div>
 <div id="root"></div>
 <script>
-var API = "https://functions.yandexcloud.net/d4emjkqnhbmg4dacd10j"; // адрес функции — заменить после настройки
+var API = ""; // адрес функции — заменить после настройки
 var $id = function (i) { return document.getElementById(i); };
 function boot() {
   var p = $id("pw").value;
   if (!p) { $id("st").textContent = "Введите пароль"; return; }
   sessionStorage.setItem("p", p);
   $id("st").textContent = "…";
-  fetch(API + "?op=app", { headers: { "X-Password": p } }).then(function (r) {
+  fetch(API + "?op=app&pw=" + encodeURIComponent(p)).then(function (r) {
     if (r.status === 403) { $id("st").textContent = "Неверный пароль"; return; }
     if (!r.ok) { $id("st").textContent = "Сервис недоступен (" + r.status + ")"; return; }
     return r.text().then(function (t) {
